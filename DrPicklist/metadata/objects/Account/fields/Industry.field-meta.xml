@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+  <fullName>Industry</fullName>
+  <label>Industry</label>
+  <required>false</required>
+  <trackFeedHistory>false</trackFeedHistory>
+  <type>Picklist</type>
+  <valueSet>
+    <valueSetDefinition>
+      <sorted>false</sorted>
+      <value>
+        <fullName>Manufacturing</fullName>
+        <default>false</default>
+        <label>Manufacturing</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Technology</fullName>
+        <default>false</default>
+        <label>Technology</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Education</fullName>
+        <default>false</default>
+        <label>Education</label>
+        <isActive>true</isActive>
+      </value>
+    </valueSetDefinition>
+    <restricted>false</restricted>
+  </valueSet>
+</CustomField>

@@ -197,13 +197,12 @@ async function ensureStandardValueSetPath(name) {
 function buildStandardValueSetXml(name, entries) {
     const doc = (0, xmlbuilder2_1.create)({ version: '1.0', encoding: 'UTF-8' })
         .ele('StandardValueSet', { xmlns: 'http://soap.sforce.com/2006/04/metadata' })
-        .ele('masterLabel').txt(name).up();
+        .ele('sorted').txt('false').up();
     for (const e of entries) {
         doc.ele('standardValue')
             .ele('fullName').txt(e.APIName).up()
             .ele('default').txt('false').up()
-            .ele('label').txt(e.Label).up()
-            .ele('isActive').txt(e.IsActive ? 'true' : 'false').up()
+            .ele('label').txt(e.Label || e.APIName).up()
             .up();
     }
     return doc.end({ prettyPrint: true });
