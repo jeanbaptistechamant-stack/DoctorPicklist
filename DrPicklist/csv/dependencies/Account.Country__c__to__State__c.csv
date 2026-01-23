@@ -1,0 +1,3 @@
+ControllingField,DependentField,ControllingValue,DependentValues
+Country__c,State__c,France,"Île-de-France;Provence;Normandie"
+Country__c,State__c,USA,"California;Texas;New York"
