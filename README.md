@@ -12,6 +12,32 @@ Connexion CLI:
 sfdx force:auth:web:login
 ```
 
+## Installation (Windows)
+- Cloner le dépôt et ouvrir le dossier:
+
+```powershell
+git clone https://github.com/jeanbaptistechamant-stack/DoctorPicklist.git
+cd DoctorPicklist
+```
+
+- Option pas-à-pas (compilation puis lancement):
+
+```powershell
+Push-Location "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist\extensions\salesforce-picklist-admin"
+npm install
+npm run compile
+Pop-Location
+
+code "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist" --extensionDevelopmentPath "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist\extensions\salesforce-picklist-admin"
+```
+
+- Option en une seule commande (exemple avec `TEST_PROJECT`):
+
+```powershell
+Push-Location "c:\Users\JeanBaptisteChamant\Desktop\TEST_PROJECT\TEST_PROJECT\DoctorPicklist\extensions\salesforce-picklist-admin"; npm install; npm run compile; Pop-Location; code "c:\Users\JeanBaptisteChamant\Desktop\TEST_PROJECT\TEST_PROJECT\DoctorPicklist" --extensionDevelopmentPath "c:\Users\JeanBaptisteChamant\Desktop\TEST_PROJECT\TEST_PROJECT\DoctorPicklist\extensions\salesforce-picklist-admin"
+```
+
+
 ## Commandes (VS Code)
 - Dr Picklist: Export Values (`drPicklist.exportValues`) — Exporter une picklist vers CSV
 - Dr Picklist: Import Values (`drPicklist.importValues`) — Importer/ajouter des valeurs depuis CSV

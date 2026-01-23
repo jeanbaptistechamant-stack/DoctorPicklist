@@ -13,6 +13,31 @@ Connexion Salesforce CLI:
 sfdx force:auth:web:login
 ```
 
+## Installation rapide (Windows)
+- Cloner le dépôt et ouvrir le dossier:
+
+```powershell
+git clone https://github.com/jeanbaptistechamant-stack/DoctorPicklist.git
+cd DoctorPicklist
+```
+
+- Compiler l’extension puis lancer VS Code en mode développement:
+
+```powershell
+Push-Location "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist\extensions\salesforce-picklist-admin"
+npm install
+npm run compile
+Pop-Location
+
+code "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist" --extensionDevelopmentPath "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist\extensions\salesforce-picklist-admin"
+```
+
+- En une seule commande (exemple de chemin `TEST_PROJECT`):
+
+```powershell
+Push-Location "c:\Users\JeanBaptisteChamant\Desktop\TEST_PROJECT\TEST_PROJECT\DoctorPicklist\extensions\salesforce-picklist-admin"; npm install; npm run compile; Pop-Location; code "c:\Users\JeanBaptisteChamant\Desktop\TEST_PROJECT\TEST_PROJECT\DoctorPicklist" --extensionDevelopmentPath "c:\Users\JeanBaptisteChamant\Desktop\TEST_PROJECT\TEST_PROJECT\DoctorPicklist\extensions\salesforce-picklist-admin"
+```
+
 ## 2) Ouvrir le projet et l’extension
 1. Ouvrez VS Code sur le dossier du projet DoctorPicklist.
 2. Lancez l’extension en mode développement.
