@@ -137,6 +137,40 @@ Pop-Location
 ```
 
 ## Tutoriel pas‑à‑pas
+-
+## Utilisation en CLI
+Vous pouvez utiliser Dr Picklist sans VS Code via une CLI Node.
+
+Installation locale et exécution:
+
+```powershell
+Push-Location "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist\extensions\salesforce-picklist-admin"
+npm install
+npm run compile
+# Exemples de commandes
+node out/cli.js generate
+node out/cli.js prepare-deploy --api 59.0
+node out/cli.js export-values -o Account -f Industry
+node out/cli.js import-values --csv "c:\\path\\to\\Account.Industry.csv" --mode local -o Account -f Industry
+node out/cli.js import-values --csv "c:\\path\\to\\Industry_Global.csv" --mode global -o Account -f Industry --valueset Industry_Global
+node out/cli.js export-dependencies -o Account -d State__c -c Country__c
+node out/cli.js import-dependencies --csv "c:\\path\\to\\Account.Country__c__to__State__c.csv" -o Account -c Country__c -d State__c
+Pop-Location
+```
+
+Option pour un binaire global (facultatif):
+
+```powershell
+Push-Location "c:\Users\JeanBaptisteChamant\Desktop\DoctorPicklist\DoctorPicklist\extensions\salesforce-picklist-admin"
+npm install
+npm run compile
+npm link
+Pop-Location
+
+# Ensuite, la commande est disponible partout
+dr-picklist generate
+```
+
 ### 1) Ouvrir le projet et l’extension
 1. Ouvrez VS Code sur le dossier du projet DoctorPicklist.
 2. Lancez l’extension en mode développement (voir section Installation).
