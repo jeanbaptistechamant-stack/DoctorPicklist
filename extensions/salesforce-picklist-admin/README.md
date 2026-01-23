@@ -1,5 +1,9 @@
 # Dr Picklist
 
+<p align="center">
+	<img src="media/icon.png" alt="Dr Picklist" width="128" height="128" />
+</p>
+
 Extension VS Code pour administrer les listes de sélection (picklists) Salesforce via CSV.
 
 ## Commandes
