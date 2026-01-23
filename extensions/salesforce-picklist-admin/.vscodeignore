@@ -1,0 +1,26 @@
+# Exclude development sources and configs
+src/**
+**/*.ts
+__tests__/**
+__mocks__/**
+
+# Exclude local tooling and configs
+.vscode/**
+jest.config.js
+tsconfig.json
+tsconfig.jest.json
+.eslint*
+eslint.config.js
+
+# Exclude git and logs
+.git/**
+.gitignore
+logs/**
+
+# Exclude source maps to reduce size (optional)
+# out/**/*.map
+
+# Keep these included:
+# - out/** (built JS)
+# - node_modules/** (runtime deps)
+# - README.md, LICENSE.md, media/**

@@ -1,9 +1,9 @@
-import { exec } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { create } from 'xmlbuilder2';
 import { stringify } from 'csv-stringify/sync';
 import { parse } from 'csv-parse/sync';
+import { runSfdx, parseSfdxJson } from './sfdx';
 
 export type PicklistEntry = { Label: string; APIName: string; IsActive: boolean };
 export type FieldInfo = { objectApi: string; fieldApi: string; type: string; custom: boolean };
@@ -14,30 +14,6 @@ export type FieldDetails = FieldInfo & {
   restrictedPicklist?: boolean;
   controllerName?: string;
 };
-
-function runSfdx(command: string): Promise<string> {
-  return new Promise((resolve) => {
-    exec(command, { shell: 'powershell.exe' }, (_error, stdout, stderr) => {
-      const combined = `${stdout || ''}\n${stderr || ''}`;
-      resolve(combined);
-    });
-  });
-}
-
-function stripAnsi(input: string): string {
-  return input.replace(/\u001b\[[0-9;]*m/g, '');
-}
-
-function parseSfdxJson(output: string): any {
-  const clean = stripAnsi(output);
-  const start = clean.indexOf('{');
-  const end = clean.lastIndexOf('}');
-  if (start === -1 || end === -1 || end < start) {
-    throw new Error('Sortie SFDX non JSON: ' + clean.trim().slice(0, 500));
-  }
-  const jsonSlice = clean.slice(start, end + 1);
-  return JSON.parse(jsonSlice);
-}
 
 export async function getDefaultUsername(): Promise<string | null> {
   try {

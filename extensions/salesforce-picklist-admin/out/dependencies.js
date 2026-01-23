@@ -39,34 +39,13 @@ exports.readDependenciesCsv = readDependenciesCsv;
 exports.exportDependencies = exportDependencies;
 exports.listPicklistFields = listPicklistFields;
 exports.exportDependenciesWithController = exportDependenciesWithController;
-const child_process_1 = require("child_process");
 const salesforce_1 = require("./salesforce");
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const sync_1 = require("csv-stringify/sync");
 const sync_2 = require("csv-parse/sync");
-function runSfdx(command) {
-    return new Promise((resolve) => {
-        (0, child_process_1.exec)(command, { shell: 'powershell.exe' }, (_error, stdout, stderr) => {
-            const combined = `${stdout || ''}\n${stderr || ''}`;
-            resolve(combined);
-        });
-    });
-}
-function stripAnsi(input) {
-    return input.replace(/\u001b\[[0-9;]*m/g, '');
-}
-function parseSfdxJson(output) {
-    const clean = stripAnsi(output);
-    const start = clean.indexOf('{');
-    const end = clean.lastIndexOf('}');
-    if (start === -1 || end === -1 || end < start) {
-        throw new Error('Sortie SFDX non JSON: ' + clean.trim().slice(0, 500));
-    }
-    const jsonSlice = clean.slice(start, end + 1);
-    return JSON.parse(jsonSlice);
-}
+const sfdx_1 = require("./sfdx");
 function getWorkspaceRoot() {
     const ws = vscode.workspace.workspaceFolders?.[0];
     if (!ws)
@@ -119,8 +98,8 @@ function base64ToBits(b64) {
 async function exportDependencies(objectApi, dependentField) {
     const username = await (0, salesforce_1.getDefaultUsername)();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     const fields = json?.result?.fields || [];
     const dep = fields.find(f => f.name === dependentField);
     if (!dep)
@@ -154,16 +133,16 @@ async function exportDependencies(objectApi, dependentField) {
 async function listPicklistFields(objectApi) {
     const username = await (0, salesforce_1.getDefaultUsername)();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     const fields = json?.result?.fields || [];
     return fields.filter(f => String(f.type).toLowerCase() === 'picklist').map(f => String(f.name));
 }
 async function exportDependenciesWithController(objectApi, dependentField, controllingField) {
     const username = await (0, salesforce_1.getDefaultUsername)();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     const fields = json?.result?.fields || [];
     const dep = fields.find(f => f.name === dependentField);
     if (!dep)

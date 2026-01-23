@@ -39,33 +39,11 @@ exports.getFieldDetails = getFieldDetails;
 exports.getFieldDetailsOrRetrieve = getFieldDetailsOrRetrieve;
 exports.getDefaultUsername = getDefaultUsername;
 exports.exportPicklistValuesDescribe = exportPicklistValuesDescribe;
-const child_process_1 = require("child_process");
 const os = __importStar(require("os"));
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const vscode = __importStar(require("vscode"));
-function runSfdx(command) {
-    return new Promise((resolve) => {
-        (0, child_process_1.exec)(command, { shell: 'powershell.exe' }, (_error, stdout, stderr) => {
-            const combined = `${stdout || ''}\n${stderr || ''}`;
-            resolve(combined);
-        });
-    });
-}
-function stripAnsi(input) {
-    // Remove ANSI color escape sequences
-    return input.replace(/\u001b\[[0-9;]*m/g, '');
-}
-function parseSfdxJson(output) {
-    const clean = stripAnsi(output);
-    const start = clean.indexOf('{');
-    const end = clean.lastIndexOf('}');
-    if (start === -1 || end === -1 || end < start) {
-        throw new Error('Sortie SFDX non JSON: ' + clean.trim().slice(0, 500));
-    }
-    const jsonSlice = clean.slice(start, end + 1);
-    return JSON.parse(jsonSlice);
-}
+const sfdx_1 = require("./sfdx");
 function getWorkspaceRoot() {
     const ws = vscode.workspace.workspaceFolders?.[0];
     if (!ws)
@@ -103,8 +81,8 @@ if (objType == null) {
     try {
         const username = await getDefaultUsername();
         const userArg = username ? ` -u "${username}"` : '';
-        const out = await runSfdx(`sfdx force:apex:execute -f "${tmpFile}"${userArg} --json`);
-        const json = parseSfdxJson(out);
+        const out = await (0, sfdx_1.runSfdx)(`sfdx force:apex:execute -f "${tmpFile}"${userArg} --json`);
+        const json = (0, sfdx_1.parseSfdxJson)(out);
         const logs = json?.result?.logs || '';
         const lines = logs.split(/\r?\n/);
         const entries = [];
@@ -140,8 +118,8 @@ if (objType == null) {
 async function getFieldInfo(objectApi, fieldApi) {
     const username = await getDefaultUsername();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json?.status !== 0) {
         throw new Error(json?.message || 'Erreur describe');
     }
@@ -154,8 +132,8 @@ async function getFieldInfo(objectApi, fieldApi) {
 async function getFieldDetails(objectApi, fieldApi) {
     const username = await getDefaultUsername();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json?.status !== 0) {
         throw new Error(json?.message || 'Erreur describe');
     }
@@ -179,8 +157,8 @@ async function retrieveCustomObject(objectApi) {
     const username = await getDefaultUsername();
     const userArg = username ? ` -u "${username}"` : '';
     // Retrieve the CustomObject in source format into force-app/main/default
-    const out = await runSfdx(`sfdx force:source:retrieve -m CustomObject:${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:source:retrieve -m CustomObject:${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json?.status !== 0)
         return false;
     return true;
@@ -237,8 +215,8 @@ async function getFieldDetailsOrRetrieve(objectApi, fieldApi) {
 }
 async function getDefaultUsername() {
     try {
-        const out = await runSfdx('sfdx force:org:list --json');
-        const json = parseSfdxJson(out);
+        const out = await (0, sfdx_1.runSfdx)('sfdx force:org:list --json');
+        const json = (0, sfdx_1.parseSfdxJson)(out);
         const lists = [...(json?.result?.nonScratchOrgs || []), ...(json?.result?.scratchOrgs || [])];
         const def = lists.find((o) => o.isDefaultUsername);
         return def?.username || null;
@@ -250,8 +228,8 @@ async function getDefaultUsername() {
 async function exportPicklistValuesDescribe(objectApi, fieldApi) {
     const username = await getDefaultUsername();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = parseSfdxJson(out);
+    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json?.status !== 0) {
         throw new Error(json?.message || 'Erreur describe');
     }
