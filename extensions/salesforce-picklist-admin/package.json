@@ -25,7 +25,8 @@
     "onCommand:drPicklist.exportDependencies",
     "onCommand:drPicklist.importDependencies",
     "onCommand:drPicklist.generateMetadata",
-    "onCommand:drPicklist.prepareDeployment"
+    "onCommand:drPicklist.prepareDeployment",
+    "onCommand:drPicklist.initProject"
   ],
   "main": "out/extension.js",
   "bin": {
@@ -43,6 +44,10 @@
       }
     },
     "commands": [
+      {
+        "command": "drPicklist.initProject",
+        "title": "Dr Picklist: Initialiser le projet (créer la structure DrPicklist)"
+      },
       {
         "command": "drPicklist.exportValues",
         "title": "Dr Picklist: Export Values - Exporter une picklist vers CSV"
