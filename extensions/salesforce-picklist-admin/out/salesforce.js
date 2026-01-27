@@ -38,7 +38,6 @@ exports.getFieldInfo = getFieldInfo;
 exports.getFieldDetails = getFieldDetails;
 exports.getFieldDetailsOrRetrieve = getFieldDetailsOrRetrieve;
 exports.getDefaultUsername = getDefaultUsername;
-exports.exportPicklistValuesDescribe = exportPicklistValuesDescribe;
 const os = __importStar(require("os"));
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
@@ -51,10 +50,7 @@ function getWorkspaceRoot() {
     return ws.uri.fsPath;
 }
 async function exportPicklistValues(objectApi, fieldApi) {
-    // Prefer CLI describe for reliability
-    const viaDescribe = await exportPicklistValuesDescribe(objectApi, fieldApi);
-    if (viaDescribe.length > 0)
-        return viaDescribe;
+    // Utilise uniquement Apex pour éviter les erreurs de parsing JSON sur les gros objets
     const apex = `
 String objectApi = '${objectApi}';
 String fieldApi = '${fieldApi}';
@@ -116,42 +112,29 @@ if (objType == null) {
     }
 }
 async function getFieldInfo(objectApi, fieldApi) {
-    const username = await getDefaultUsername();
-    const userArg = username ? ` -u "${username}"` : '';
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = (0, sfdx_1.parseSfdxJson)(out);
-    if (json?.status && json?.status !== 0) {
-        throw new Error(json?.message || 'Erreur describe');
+    // Utiliser uniquement les métadonnées locales pour éviter les erreurs describe
+    const details = await getFieldDetailsFromLocal(objectApi, fieldApi);
+    if (!details) {
+        throw new Error(`Métadonnées pour ${objectApi}.${fieldApi} introuvables.\n` +
+            `Veuillez d'abord récupérer les métadonnées localement :\n` +
+            `sfdx force:source:retrieve -m CustomObject:${objectApi}`);
     }
-    const fields = json?.result?.fields || [];
-    const f = fields.find(x => x.name === fieldApi);
-    if (!f)
-        throw new Error('Champ introuvable dans describe');
-    return { objectApi, fieldApi, type: String(f.type || ''), custom: Boolean(f.custom) };
+    return {
+        objectApi: details.objectApi,
+        fieldApi: details.fieldApi,
+        type: details.type,
+        custom: details.custom
+    };
 }
 async function getFieldDetails(objectApi, fieldApi) {
-    const username = await getDefaultUsername();
-    const userArg = username ? ` -u "${username}"` : '';
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = (0, sfdx_1.parseSfdxJson)(out);
-    if (json?.status && json?.status !== 0) {
-        throw new Error(json?.message || 'Erreur describe');
+    // Utiliser uniquement les métadonnées locales
+    const details = await getFieldDetailsFromLocal(objectApi, fieldApi);
+    if (!details) {
+        throw new Error(`Métadonnées pour ${objectApi}.${fieldApi} introuvables.\n` +
+            `Veuillez d'abord récupérer les métadonnées localement :\n` +
+            `sfdx force:source:retrieve -m CustomObject:${objectApi}`);
     }
-    const fields = json?.result?.fields || [];
-    const f = fields.find(x => x.name === fieldApi);
-    if (!f)
-        throw new Error('Champ introuvable dans describe');
-    return {
-        objectApi,
-        fieldApi,
-        type: String(f.type || ''),
-        custom: Boolean(f.custom),
-        label: f.label,
-        nillable: f.nillable,
-        inlineHelpText: f.inlineHelpText,
-        restrictedPicklist: f.restrictedPicklist,
-        controllerName: f.controllerName,
-    };
+    return details;
 }
 async function retrieveCustomObject(objectApi) {
     const username = await getDefaultUsername();
@@ -190,7 +173,8 @@ async function getFieldDetailsFromLocal(objectApi, fieldApi) {
             nillable: parseBooleanTag(content, 'required') === undefined ? undefined : !parseBooleanTag(content, 'required'),
             inlineHelpText: parseTextTag(content, 'inlineHelpText') || parseTextTag(content, 'description'),
             restrictedPicklist: parseBooleanTag(content, 'restricted'),
-            controllerName: parseTextTag(content, 'controllerName') || parseTextTag(content, 'controllingField')
+            controllerName: parseTextTag(content, 'controllerName') || parseTextTag(content, 'controllingField'),
+            valueSetName: parseTextTag(content, 'valueSetName')
         };
     }
     catch {
@@ -198,20 +182,25 @@ async function getFieldDetailsFromLocal(objectApi, fieldApi) {
     }
 }
 async function getFieldDetailsOrRetrieve(objectApi, fieldApi) {
+    // Essayer d'abord depuis les métadonnées locales
     try {
-        return await getFieldDetails(objectApi, fieldApi);
+        const fromLocal = await getFieldDetailsFromLocal(objectApi, fieldApi);
+        if (fromLocal)
+            return fromLocal;
     }
     catch { }
+    // Si pas en local, tenter un retrieve
     try {
         const ok = await retrieveCustomObject(objectApi);
-        if (!ok)
-            return undefined;
-        const fromLocal = await getFieldDetailsFromLocal(objectApi, fieldApi);
-        return fromLocal ?? undefined;
+        if (ok) {
+            const fromLocal = await getFieldDetailsFromLocal(objectApi, fieldApi);
+            if (fromLocal)
+                return fromLocal;
+        }
     }
-    catch {
-        return undefined;
-    }
+    catch { }
+    // Si toujours rien, retourner undefined (l'appelant devra gérer)
+    return undefined;
 }
 async function getDefaultUsername() {
     try {
@@ -224,20 +213,5 @@ async function getDefaultUsername() {
     catch {
         return null;
     }
-}
-async function exportPicklistValuesDescribe(objectApi, fieldApi) {
-    const username = await getDefaultUsername();
-    const userArg = username ? ` -u "${username}"` : '';
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
-    const json = (0, sfdx_1.parseSfdxJson)(out);
-    if (json?.status && json?.status !== 0) {
-        throw new Error(json?.message || 'Erreur describe');
-    }
-    const fields = json?.result?.fields || [];
-    const f = fields.find(x => x.name === fieldApi);
-    if (!f)
-        return [];
-    const pvs = f.picklistValues || [];
-    return pvs.map(v => ({ Label: String(v.label || v.value || ''), APIName: String(v.value || ''), IsActive: Boolean(v.active) }));
 }
 //# sourceMappingURL=salesforce.js.map

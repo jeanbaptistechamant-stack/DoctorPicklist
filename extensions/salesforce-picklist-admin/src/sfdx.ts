@@ -44,6 +44,16 @@ function findJsonCandidates(text: string): string[] {
   return candidates.sort((a, b) => b.length - a.length);
 }
 
+export class SfdxJsonParseError extends Error {
+  public readonly rawOutput: string;
+
+  constructor(cleanOutput: string) {
+    super('Sortie SFDX non JSON');
+    this.name = 'SfdxJsonParseError';
+    this.rawOutput = cleanOutput;
+  }
+}
+
 export function parseSfdxJson(output: string): any {
   const clean = stripAnsi(output);
   const noise = /^(warning:|warn:|info:|error:|npm warn|sfdx-cli|see .*|try this|===|\[.*\]|\d+\s+\/\s+\d+)/i;
@@ -53,14 +63,29 @@ export function parseSfdxJson(output: string): any {
   const tryParse = (text: string) => {
     for (const candidate of findJsonCandidates(text)) {
       try {
-        return JSON.parse(candidate);
+        const parsed = JSON.parse(candidate);
+        // Valider que c'est un objet avec au moins status ou result
+        if (parsed && typeof parsed === 'object' && ('status' in parsed || 'result' in parsed)) {
+          return parsed;
+        }
       } catch {}
     }
     return null;
   };
 
-  const parsed = tryParse(filtered) ?? tryParse(clean);
+  // Try filtered first, then clean, then try to parse the whole output as-is
+  let parsed = tryParse(filtered);
+  if (parsed !== null) return parsed;
+  
+  parsed = tryParse(clean);
   if (parsed !== null) return parsed;
 
-  throw new Error('Sortie SFDX non JSON: ' + clean.trim().slice(0, 800));
+  // Last resort: try to parse the entire clean output directly
+  try {
+    const direct = JSON.parse(clean.trim());
+    if (direct && typeof direct === 'object') return direct;
+  } catch {}
+
+  // When parsing fails, throw a dedicated error carrying the full clean output
+  throw new SfdxJsonParseError(clean.trim());
 }
