@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ensureDrPicklistScaffolding = ensureDrPicklistScaffolding;
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
@@ -43,7 +44,31 @@ const metadata_1 = require("./metadata");
 const deploy_1 = require("./deploy");
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
+async function ensureDrPicklistScaffolding(root) {
+    const dirs = [
+        path.join(root, 'DrPicklist'),
+        path.join(root, 'DrPicklist', 'csv'),
+        path.join(root, 'DrPicklist', 'csv', 'picklists'),
+        path.join(root, 'DrPicklist', 'csv', 'dependencies'),
+        path.join(root, 'DrPicklist', 'metadata'),
+        path.join(root, 'DrPicklist', 'metadata', 'objects'),
+        path.join(root, 'DrPicklist', 'metadata', 'globalValueSets'),
+        path.join(root, 'DrPicklist', 'metadata', 'standardValueSets'),
+        path.join(root, 'DrPicklist', 'deploy')
+    ];
+    for (const d of dirs) {
+        try {
+            await fs.mkdir(d, { recursive: true });
+        }
+        catch { }
+    }
+}
 function activate(context) {
+    const ws = vscode.workspace.workspaceFolders?.[0];
+    if (ws) {
+        // Prépare l'arborescence DrPicklist dans n'importe quel nouveau projet
+        ensureDrPicklistScaffolding(ws.uri.fsPath).catch(() => { });
+    }
     const exportValues = vscode.commands.registerCommand('drPicklist.exportValues', async () => {
         const apiField = await vscode.window.showInputBox({
             title: 'Nom API du champ',
@@ -322,7 +347,21 @@ function activate(context) {
             vscode.window.showErrorMessage(`Échec préparation package: ${err?.message || String(err)}`);
         }
     });
-    context.subscriptions.push(exportValues, importValues, exportDeps, importDeps, generateMetadata, prepareDeployment);
+    const initProject = vscode.commands.registerCommand('drPicklist.initProject', async () => {
+        try {
+            const ws2 = vscode.workspace.workspaceFolders?.[0];
+            if (!ws2) {
+                vscode.window.showErrorMessage('Aucun workspace ouvert. Ouvrez la racine de votre projet Salesforce.');
+                return;
+            }
+            await ensureDrPicklistScaffolding(ws2.uri.fsPath);
+            vscode.window.showInformationMessage('Dossier DrPicklist initialisé pour ce projet.');
+        }
+        catch (err) {
+            vscode.window.showErrorMessage(`Échec de l\'initialisation DrPicklist: ${err?.message || String(err)}`);
+        }
+    });
+    context.subscriptions.push(exportValues, importValues, exportDeps, importDeps, generateMetadata, prepareDeployment, initProject);
     try {
         const auto = vscode.workspace.getConfiguration('drPicklist').get('autoGenerateOnStartup', true);
         if (auto) {

@@ -8,7 +8,32 @@ import { prepareDeploymentPackage } from './deploy';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+export async function ensureDrPicklistScaffolding(root: string): Promise<void> {
+  const dirs = [
+    path.join(root, 'DrPicklist'),
+    path.join(root, 'DrPicklist', 'csv'),
+    path.join(root, 'DrPicklist', 'csv', 'picklists'),
+    path.join(root, 'DrPicklist', 'csv', 'dependencies'),
+    path.join(root, 'DrPicklist', 'metadata'),
+    path.join(root, 'DrPicklist', 'metadata', 'objects'),
+    path.join(root, 'DrPicklist', 'metadata', 'globalValueSets'),
+    path.join(root, 'DrPicklist', 'metadata', 'standardValueSets'),
+    path.join(root, 'DrPicklist', 'deploy')
+  ];
+  for (const d of dirs) {
+    try {
+      await fs.mkdir(d, { recursive: true });
+    } catch {}
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
+  const ws = vscode.workspace.workspaceFolders?.[0];
+  if (ws) {
+    // Prépare l'arborescence DrPicklist dans n'importe quel nouveau projet
+    ensureDrPicklistScaffolding(ws.uri.fsPath).catch(() => {});
+  }
+
   const exportValues = vscode.commands.registerCommand('drPicklist.exportValues', async () => {
     const apiField = await vscode.window.showInputBox({
       title: 'Nom API du champ',
@@ -268,13 +293,28 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  const initProject = vscode.commands.registerCommand('drPicklist.initProject', async () => {
+    try {
+      const ws2 = vscode.workspace.workspaceFolders?.[0];
+      if (!ws2) {
+        vscode.window.showErrorMessage('Aucun workspace ouvert. Ouvrez la racine de votre projet Salesforce.');
+        return;
+      }
+      await ensureDrPicklistScaffolding(ws2.uri.fsPath);
+      vscode.window.showInformationMessage('Dossier DrPicklist initialisé pour ce projet.');
+    } catch (err: any) {
+      vscode.window.showErrorMessage(`Échec de l\'initialisation DrPicklist: ${err?.message || String(err)}`);
+    }
+  });
+
   context.subscriptions.push(
     exportValues,
     importValues,
     exportDeps,
     importDeps,
     generateMetadata,
-    prepareDeployment
+    prepareDeployment,
+    initProject
   );
 
   try {
