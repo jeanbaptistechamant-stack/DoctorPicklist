@@ -1,4 +1,33 @@
-Label,APIName,IsActive
-Manufacturing,Manufacturing,true
-Technology,Technology,true
-Education,Education,true
+Label;APIName;IsActive
+Agriculture;Agriculture;0
+Apparel;Apparel;1
+Banking;Banking;1
+Biotechnology;Biotechnology;1
+Chemicals;Chemicals;0
+Communications;Communications;1
+Construction;Construction;1
+Consulting;Consulting;1
+Education;Education;1
+Electronics;Electronics;1
+Energy;Energy;1
+Engineering;Engineering;1
+Entertainment;Entertainment;1
+Environmental;Environmental;1
+Finance;Finance;1
+Food & Beverage;Food & Beverage;1
+Government;Government;1
+Healthcare;Healthcare;1
+Hospitality;Hospitality;1
+Insurance;Insurance;1
+Machinery;Machinery;1
+Manufacturing;Manufacturing;1
+Media;Media;1
+Not For Profit;Not For Profit;1
+Other;Other;1
+Recreation;Recreation;1
+Retail;Retail;1
+Shipping;Shipping;1
+Technology;Technology;1
+Telecommunications;Telecommunications;1
+Transportation;Transportation;1
+Utilities;Utilities;1

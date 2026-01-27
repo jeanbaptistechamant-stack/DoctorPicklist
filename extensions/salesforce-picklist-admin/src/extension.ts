@@ -17,12 +17,42 @@ async function writeErrorLog(context: string, err: any): Promise<string | null> 
     await fs.mkdir(logDir, { recursive: true });
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filePath = path.join(logDir, `${context}-${timestamp}.log`);
-    const message = [
-      `Contexte: ${context}`,
-      `Date: ${new Date().toISOString()}`,
-      '',
-      String(err?.stack || err?.message || err || '')
-    ].join('\n');
+    const parts: string[] = [];
+    parts.push(`Contexte: ${context}`);
+    parts.push(`Date: ${new Date().toISOString()}`);
+    parts.push('');
+
+    // Message et stack de base
+    if (err?.message) {
+      parts.push(`Message: ${String(err.message)}`);
+    }
+    if (err?.stack) {
+      parts.push('Stack:');
+      parts.push(String(err.stack));
+    }
+
+    // Détails supplémentaires sérialisés ( propriétés énumérables )
+    const extra: any = {};
+    for (const key of Object.keys(err || {})) {
+      if (key === 'message' || key === 'stack') continue;
+      try {
+        (extra as any)[key] = (err as any)[key];
+      } catch {}
+    }
+    if (Object.keys(extra).length > 0) {
+      parts.push('');
+      parts.push('Détails supplémentaires:');
+      parts.push(JSON.stringify(extra, null, 2));
+    }
+
+    // Cas particulier : erreur de parsing SFDX avec sortie brute
+    if ((err as any)?.rawOutput) {
+      parts.push('');
+      parts.push('Sortie SFDX complète:');
+      parts.push(String((err as any).rawOutput));
+    }
+
+    const message = parts.join('\n');
     await fs.writeFile(filePath, message, 'utf8');
     return filePath;
   } catch {
@@ -131,10 +161,20 @@ export function activate(context: vscode.ExtensionContext) {
       }
       let mode = modePick.label;
       if (modePick.label === 'Auto (détection champ)') {
-        const info = await getFieldInfo(objectApi, fieldApi);
-        if (info.type.toLowerCase() === 'picklist' && !info.custom) {
-          mode = 'StandardValueSet';
+        const details = await getFieldDetailsOrRetrieve(objectApi, fieldApi);
+        if (!details) {
+          mode = 'Picklist Field (Local Value Set)';
+        } else if (details.valueSetName) {
+          // Si le champ référence un valueSet nommé, c'est soit Global soit Standard
+          if (!details.custom && /picklist/i.test(details.type || '')) {
+            // Champ standard avec valueSet = StandardValueSet
+            mode = 'StandardValueSet';
+          } else {
+            // Champ custom avec valueSet = GlobalValueSet
+            mode = 'GlobalValueSet';
+          }
         } else {
+          // Pas de valueSet nommé = local value set
           mode = 'Picklist Field (Local Value Set)';
         }
       }
@@ -174,8 +214,14 @@ export function activate(context: vscode.ExtensionContext) {
     } catch (err: any) {
       const logPath = await writeErrorLog('import-values', err);
       let msg = `Échec import XML: ${err?.message || String(err)}`;
+      
+      // Si l'erreur mentionne des métadonnées introuvables, ajouter des instructions
+      if (/Métadonnées.*introuvables/i.test(String(err?.message || ''))) {
+        msg = String(err?.message || err);
+      }
+      
       if (logPath) {
-        msg += ` (voir log: ${logPath})`;
+        msg += `\n\nVoir log: ${logPath}`;
       }
       vscode.window.showErrorMessage(msg);
     }
@@ -271,7 +317,7 @@ export function activate(context: vscode.ExtensionContext) {
       const pickDir = path.join(root, 'DrPicklist', 'csv', 'picklists');
       const depDir = path.join(root, 'DrPicklist', 'csv', 'dependencies');
 
-      // Process picklists (local value set)
+      // Process picklists (local / global / standard value set)
       try {
         const files = await fs.readdir(pickDir);
         for (const f of files) {
@@ -282,8 +328,29 @@ export function activate(context: vscode.ExtensionContext) {
             const [ , objectApi, fieldApi ] = localMatch;
             const entries = await readPicklistCsv(path.join(pickDir, f));
             const details = await getFieldDetailsOrRetrieve(objectApi, fieldApi);
-            const xml = buildPicklistFieldXml(objectApi, fieldApi, entries, details);
-            await writeFieldMetadata(objectApi, fieldApi, xml);
+            
+            // Déterminer le type de value set en fonction des détails du champ
+            if (details?.valueSetName) {
+              // Le champ référence un valueSet nommé
+              if (!details.custom && /picklist/i.test(details.type || '')) {
+                // Champ standard avec valueSet = StandardValueSet
+                const valueSetName = details.valueSetName;
+                const sxml = buildStandardValueSetXml(valueSetName, entries);
+                await writeStandardValueSet(valueSetName, sxml);
+              } else {
+                // Champ custom avec valueSet = GlobalValueSet
+                const valueSetName = details.valueSetName;
+                const gxml = buildGlobalValueSetXml(valueSetName, entries);
+                await writeGlobalValueSet(valueSetName, gxml);
+                // Générer aussi la référence du champ vers le GlobalValueSet
+                const fxml = buildPicklistFieldGlobalRefXml(fieldApi, valueSetName, details);
+                await writeFieldMetadata(objectApi, fieldApi, fxml);
+              }
+            } else {
+              // Pas de valueSet nommé = local value set
+              const xml = buildPicklistFieldXml(objectApi, fieldApi, entries, details);
+              await writeFieldMetadata(objectApi, fieldApi, xml);
+            }
             continue;
           }
           // GlobalValueSet: Name_Global.csv
@@ -326,8 +393,14 @@ export function activate(context: vscode.ExtensionContext) {
     } catch (err: any) {
       const logPath = await writeErrorLog('generate-metadata', err);
       let msg = `Échec génération: ${err?.message || String(err)}`;
+      
+      // Si l'erreur mentionne des métadonnées introuvables, afficher le message complet
+      if (/Métadonnées.*introuvables/i.test(String(err?.message || ''))) {
+        msg = String(err?.message || err);
+      }
+      
       if (logPath) {
-        msg += ` (voir log: ${logPath})`;
+        msg += `\n\nVoir log: ${logPath}`;
       }
       vscode.window.showErrorMessage(msg);
     }
