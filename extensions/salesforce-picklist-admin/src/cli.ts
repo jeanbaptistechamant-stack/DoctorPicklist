@@ -2,6 +2,26 @@
 import { Command } from 'commander';
 import { generateMetadataFromCsv, prepareDeploymentPackage, exportPicklistValuesDescribe, readPicklistCsv, buildPicklistFieldXml, writeFieldMetadata, buildGlobalValueSetXml, writeGlobalValueSet, buildStandardValueSetXml, writeStandardValueSet, getFieldDetails, readDependenciesCsv, buildDependentPicklistXml, buildPicklistFieldGlobalRefXml, exportDependenciesCli } from './cli_core';
 import * as path from 'path';
+import * as fs from 'fs/promises';
+
+async function writeCliErrorLog(context: string, err: any): Promise<string | null> {
+  try {
+    const logDir = path.join(process.cwd(), 'DrPicklist', 'logs');
+    await fs.mkdir(logDir, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filePath = path.join(logDir, `${context}-${timestamp}.log`);
+    const message = [
+      `Contexte: ${context}`,
+      `Date: ${new Date().toISOString()}`,
+      '',
+      String(err?.stack || err?.message || err || '')
+    ].join('\n');
+    await fs.writeFile(filePath, message, 'utf8');
+    return filePath;
+  } catch {
+    return null;
+  }
+}
 
 const program = new Command();
 program
@@ -16,7 +36,11 @@ program.command('generate')
       await generateMetadataFromCsv();
       console.log('Métadonnées générées à partir des CSV.');
     } catch (err: any) {
+      const logPath = await writeCliErrorLog('cli-generate', err);
       console.error('Échec génération:', err?.message || String(err));
+      if (logPath) {
+        console.error('Voir log:', logPath);
+      }
       process.exit(1);
     }
   });
@@ -30,7 +54,11 @@ program.command('prepare-deploy')
       console.log('Package prêt:', packageXml);
       console.log('Fichiers copiés:', copied.length);
     } catch (err: any) {
+      const logPath = await writeCliErrorLog('cli-prepare-deploy', err);
       console.error('Échec préparation package:', err?.message || String(err));
+      if (logPath) {
+        console.error('Voir log:', logPath);
+      }
       process.exit(1);
     }
   });
@@ -49,7 +77,11 @@ program.command('export-values')
       await (await import('fs/promises')).writeFile(filePath, csv, 'utf8');
       console.log('Exporté:', filePath);
     } catch (err: any) {
+      const logPath = await writeCliErrorLog('cli-export-values', err);
       console.error('Échec export:', err?.message || String(err));
+      if (logPath) {
+        console.error('Voir log:', logPath);
+      }
       process.exit(1);
     }
   });
@@ -97,7 +129,11 @@ program.command('import-values')
         throw new Error('Mode invalide: utilisez local|global|standard');
       }
     } catch (err: any) {
+      const logPath = await writeCliErrorLog('cli-import-values', err);
       console.error('Échec import XML:', err?.message || String(err));
+      if (logPath) {
+        console.error('Voir log:', logPath);
+      }
       process.exit(1);
     }
   });
@@ -112,7 +148,11 @@ program.command('export-dependencies')
       const filePath = await exportDependenciesCli(opts.object, opts.dependent, opts.controlling);
       console.log('Dépendances exportées:', filePath);
     } catch (err: any) {
+      const logPath = await writeCliErrorLog('cli-export-dependencies', err);
       console.error('Échec export dépendances:', err?.message || String(err));
+      if (logPath) {
+        console.error('Voir log:', logPath);
+      }
       process.exit(1);
     }
   });
@@ -131,7 +171,11 @@ program.command('import-dependencies')
       const outPath = await writeFieldMetadata(opts.object, opts.dependent, xml);
       console.log('XML dépendances généré:', outPath);
     } catch (err: any) {
+      const logPath = await writeCliErrorLog('cli-import-dependencies', err);
       console.error('Échec import dépendances:', err?.message || String(err));
+      if (logPath) {
+        console.error('Voir log:', logPath);
+      }
       process.exit(1);
     }
   });

@@ -44,6 +44,29 @@ const metadata_1 = require("./metadata");
 const deploy_1 = require("./deploy");
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
+async function writeErrorLog(context, err) {
+    try {
+        const ws = vscode.workspace.workspaceFolders?.[0];
+        if (!ws)
+            return null;
+        const root = ws.uri.fsPath;
+        const logDir = path.join(root, 'DrPicklist', 'logs');
+        await fs.mkdir(logDir, { recursive: true });
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filePath = path.join(logDir, `${context}-${timestamp}.log`);
+        const message = [
+            `Contexte: ${context}`,
+            `Date: ${new Date().toISOString()}`,
+            '',
+            String(err?.stack || err?.message || err || '')
+        ].join('\n');
+        await fs.writeFile(filePath, message, 'utf8');
+        return filePath;
+    }
+    catch {
+        return null;
+    }
+}
 async function ensureDrPicklistScaffolding(root) {
     const dirs = [
         path.join(root, 'DrPicklist'),
@@ -90,7 +113,12 @@ function activate(context) {
             vscode.window.showInformationMessage(`Exporté: ${csvPath}`);
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Échec export: ${err?.message || String(err)}`);
+            const logPath = await writeErrorLog('export-values', err);
+            let msg = `Échec export: ${err?.message || String(err)}`;
+            if (logPath) {
+                msg += ` (voir log: ${logPath})`;
+            }
+            vscode.window.showErrorMessage(msg);
         }
     });
     const importValues = vscode.commands.registerCommand('drPicklist.importValues', async () => {
@@ -193,7 +221,12 @@ function activate(context) {
             }
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Échec import XML: ${err?.message || String(err)}`);
+            const logPath = await writeErrorLog('import-values', err);
+            let msg = `Échec import XML: ${err?.message || String(err)}`;
+            if (logPath) {
+                msg += ` (voir log: ${logPath})`;
+            }
+            vscode.window.showErrorMessage(msg);
         }
     });
     const exportDeps = vscode.commands.registerCommand('drPicklist.exportDependencies', async () => {
@@ -222,11 +255,21 @@ function activate(context) {
                     vscode.window.showInformationMessage(`Dépendances exportées: ${csvPath2}`);
                 }
                 catch (err2) {
-                    vscode.window.showErrorMessage(`Échec export dépendances: ${err2?.message || String(err2)}`);
+                    const logPath = await writeErrorLog('export-dependencies', err2);
+                    let emsg = `Échec export dépendances: ${err2?.message || String(err2)}`;
+                    if (logPath) {
+                        emsg += ` (voir log: ${logPath})`;
+                    }
+                    vscode.window.showErrorMessage(emsg);
                 }
             }
             else {
-                vscode.window.showErrorMessage(`Échec export dépendances: ${msg}`);
+                const logPath = await writeErrorLog('export-dependencies', err);
+                let emsg = `Échec export dépendances: ${msg}`;
+                if (logPath) {
+                    emsg += ` (voir log: ${logPath})`;
+                }
+                vscode.window.showErrorMessage(emsg);
             }
         }
     });
@@ -262,7 +305,12 @@ function activate(context) {
             vscode.window.showInformationMessage(`XML dépendances généré: ${outPath}`);
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Échec import dépendances: ${err?.message || String(err)}`);
+            const logPath = await writeErrorLog('import-dependencies', err);
+            let msg = `Échec import dépendances: ${err?.message || String(err)}`;
+            if (logPath) {
+                msg += ` (voir log: ${logPath})`;
+            }
+            vscode.window.showErrorMessage(msg);
         }
     });
     const generateMetadata = vscode.commands.registerCommand('drPicklist.generateMetadata', async () => {
@@ -332,7 +380,12 @@ function activate(context) {
             vscode.window.showInformationMessage('Métadonnées générées à partir des CSV.');
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Échec génération: ${err?.message || String(err)}`);
+            const logPath = await writeErrorLog('generate-metadata', err);
+            let msg = `Échec génération: ${err?.message || String(err)}`;
+            if (logPath) {
+                msg += ` (voir log: ${logPath})`;
+            }
+            vscode.window.showErrorMessage(msg);
         }
     });
     const prepareDeployment = vscode.commands.registerCommand('drPicklist.prepareDeployment', async () => {
@@ -344,7 +397,12 @@ function activate(context) {
             }
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Échec préparation package: ${err?.message || String(err)}`);
+            const logPath = await writeErrorLog('prepare-deployment', err);
+            let msg = `Échec préparation package: ${err?.message || String(err)}`;
+            if (logPath) {
+                msg += ` (voir log: ${logPath})`;
+            }
+            vscode.window.showErrorMessage(msg);
         }
     });
     const initProject = vscode.commands.registerCommand('drPicklist.initProject', async () => {
@@ -358,7 +416,12 @@ function activate(context) {
             vscode.window.showInformationMessage('Dossier DrPicklist initialisé pour ce projet.');
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Échec de l\'initialisation DrPicklist: ${err?.message || String(err)}`);
+            const logPath = await writeErrorLog('init-project', err);
+            let msg = `Échec de l'initialisation DrPicklist: ${err?.message || String(err)}`;
+            if (logPath) {
+                msg += ` (voir log: ${logPath})`;
+            }
+            vscode.window.showErrorMessage(msg);
         }
     });
     context.subscriptions.push(exportValues, importValues, exportDeps, importDeps, generateMetadata, prepareDeployment, initProject);

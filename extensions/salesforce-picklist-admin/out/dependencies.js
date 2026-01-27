@@ -100,6 +100,9 @@ async function exportDependencies(objectApi, dependentField) {
     const userArg = username ? ` -u "${username}"` : '';
     const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
+    if (json?.status && json.status !== 0) {
+        throw new Error(json?.message || 'Erreur describe');
+    }
     const fields = json?.result?.fields || [];
     const dep = fields.find(f => f.name === dependentField);
     if (!dep)
@@ -135,6 +138,9 @@ async function listPicklistFields(objectApi) {
     const userArg = username ? ` -u "${username}"` : '';
     const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
+    if (json?.status && json.status !== 0) {
+        throw new Error(json?.message || 'Erreur describe');
+    }
     const fields = json?.result?.fields || [];
     return fields.filter(f => String(f.type).toLowerCase() === 'picklist').map(f => String(f.name));
 }
@@ -143,6 +149,9 @@ async function exportDependenciesWithController(objectApi, dependentField, contr
     const userArg = username ? ` -u "${username}"` : '';
     const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
+    if (json?.status && json.status !== 0) {
+        throw new Error(json?.message || 'Erreur describe');
+    }
     const fields = json?.result?.fields || [];
     const dep = fields.find(f => f.name === dependentField);
     if (!dep)

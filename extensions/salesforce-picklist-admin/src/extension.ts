@@ -8,6 +8,28 @@ import { prepareDeploymentPackage } from './deploy';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+async function writeErrorLog(context: string, err: any): Promise<string | null> {
+  try {
+    const ws = vscode.workspace.workspaceFolders?.[0];
+    if (!ws) return null;
+    const root = ws.uri.fsPath;
+    const logDir = path.join(root, 'DrPicklist', 'logs');
+    await fs.mkdir(logDir, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filePath = path.join(logDir, `${context}-${timestamp}.log`);
+    const message = [
+      `Contexte: ${context}`,
+      `Date: ${new Date().toISOString()}`,
+      '',
+      String(err?.stack || err?.message || err || '')
+    ].join('\n');
+    await fs.writeFile(filePath, message, 'utf8');
+    return filePath;
+  } catch {
+    return null;
+  }
+}
+
 export async function ensureDrPicklistScaffolding(root: string): Promise<void> {
   const dirs = [
     path.join(root, 'DrPicklist'),
@@ -52,7 +74,12 @@ export function activate(context: vscode.ExtensionContext) {
       await writePicklistCsv(csvPath, entries);
       vscode.window.showInformationMessage(`Exporté: ${csvPath}`);
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Échec export: ${err?.message || String(err)}`);
+      const logPath = await writeErrorLog('export-values', err);
+      let msg = `Échec export: ${err?.message || String(err)}`;
+      if (logPath) {
+        msg += ` (voir log: ${logPath})`;
+      }
+      vscode.window.showErrorMessage(msg);
     }
   });
 
@@ -145,7 +172,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(`StandardValueSet généré: ${sOut}`);
       }
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Échec import XML: ${err?.message || String(err)}`);
+      const logPath = await writeErrorLog('import-values', err);
+      let msg = `Échec import XML: ${err?.message || String(err)}`;
+      if (logPath) {
+        msg += ` (voir log: ${logPath})`;
+      }
+      vscode.window.showErrorMessage(msg);
     }
   });
 
@@ -174,10 +206,20 @@ export function activate(context: vscode.ExtensionContext) {
           const csvPath2 = await exportDependenciesWithController(objectApi, dependentField, controllingField.label);
           vscode.window.showInformationMessage(`Dépendances exportées: ${csvPath2}`);
         } catch (err2: any) {
-          vscode.window.showErrorMessage(`Échec export dépendances: ${err2?.message || String(err2)}`);
+          const logPath = await writeErrorLog('export-dependencies', err2);
+          let emsg = `Échec export dépendances: ${err2?.message || String(err2)}`;
+          if (logPath) {
+            emsg += ` (voir log: ${logPath})`;
+          }
+          vscode.window.showErrorMessage(emsg);
         }
       } else {
-        vscode.window.showErrorMessage(`Échec export dépendances: ${msg}`);
+        const logPath = await writeErrorLog('export-dependencies', err);
+        let emsg = `Échec export dépendances: ${msg}`;
+        if (logPath) {
+          emsg += ` (voir log: ${logPath})`;
+        }
+        vscode.window.showErrorMessage(emsg);
       }
     }
   });
@@ -210,7 +252,12 @@ export function activate(context: vscode.ExtensionContext) {
       const outPath = await writeFieldMetadata(objectApi, dependentField, xml);
       vscode.window.showInformationMessage(`XML dépendances généré: ${outPath}`);
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Échec import dépendances: ${err?.message || String(err)}`);
+      const logPath = await writeErrorLog('import-dependencies', err);
+      let msg = `Échec import dépendances: ${err?.message || String(err)}`;
+      if (logPath) {
+        msg += ` (voir log: ${logPath})`;
+      }
+      vscode.window.showErrorMessage(msg);
     }
   });
 
@@ -277,7 +324,12 @@ export function activate(context: vscode.ExtensionContext) {
 
       vscode.window.showInformationMessage('Métadonnées générées à partir des CSV.');
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Échec génération: ${err?.message || String(err)}`);
+      const logPath = await writeErrorLog('generate-metadata', err);
+      let msg = `Échec génération: ${err?.message || String(err)}`;
+      if (logPath) {
+        msg += ` (voir log: ${logPath})`;
+      }
+      vscode.window.showErrorMessage(msg);
     }
   });
 
@@ -289,7 +341,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showWarningMessage('Aucun fichier de métadonnées trouvé à copier.');
       }
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Échec préparation package: ${err?.message || String(err)}`);
+      const logPath = await writeErrorLog('prepare-deployment', err);
+      let msg = `Échec préparation package: ${err?.message || String(err)}`;
+      if (logPath) {
+        msg += ` (voir log: ${logPath})`;
+      }
+      vscode.window.showErrorMessage(msg);
     }
   });
 
@@ -303,7 +360,12 @@ export function activate(context: vscode.ExtensionContext) {
       await ensureDrPicklistScaffolding(ws2.uri.fsPath);
       vscode.window.showInformationMessage('Dossier DrPicklist initialisé pour ce projet.');
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Échec de l\'initialisation DrPicklist: ${err?.message || String(err)}`);
+      const logPath = await writeErrorLog('init-project', err);
+      let msg = `Échec de l'initialisation DrPicklist: ${err?.message || String(err)}`;
+      if (logPath) {
+        msg += ` (voir log: ${logPath})`;
+      }
+      vscode.window.showErrorMessage(msg);
     }
   });
 
