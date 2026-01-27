@@ -70,6 +70,9 @@ export async function exportDependencies(objectApi: string, dependentField: stri
   const userArg = username ? ` -u "${username}"` : '';
   const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
+  if (json?.status && json.status !== 0) {
+    throw new Error(json?.message || 'Erreur describe');
+  }
   const fields: any[] = json?.result?.fields || [];
   const dep = fields.find(f => f.name === dependentField);
   if (!dep) throw new Error('Champ dépendant introuvable');
@@ -104,6 +107,9 @@ export async function listPicklistFields(objectApi: string): Promise<string[]> {
   const userArg = username ? ` -u "${username}"` : '';
   const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
+  if (json?.status && json.status !== 0) {
+    throw new Error(json?.message || 'Erreur describe');
+  }
   const fields: any[] = json?.result?.fields || [];
   return fields.filter(f => String(f.type).toLowerCase() === 'picklist').map(f => String(f.name));
 }
@@ -113,6 +119,9 @@ export async function exportDependenciesWithController(objectApi: string, depend
   const userArg = username ? ` -u "${username}"` : '';
   const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
+  if (json?.status && json.status !== 0) {
+    throw new Error(json?.message || 'Erreur describe');
+  }
   const fields: any[] = json?.result?.fields || [];
   const dep = fields.find(f => f.name === dependentField);
   if (!dep) throw new Error('Champ dépendant introuvable');
