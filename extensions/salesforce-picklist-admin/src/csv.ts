@@ -41,3 +41,19 @@ export async function readPicklistCsv(filePath: string): Promise<PicklistEntry[]
     })()
   }));
 }
+
+export async function isDependencyCsv(filePath: string): Promise<boolean> {
+  try {
+    const content = await fs.readFile(filePath, 'utf8');
+    const lines = content.split(/\r?\n/);
+    if (lines.length === 0) return false;
+    const header = lines[0].toLowerCase();
+    // Vérifier si les colonnes de dépendances sont présentes
+    return header.includes('controllingfield') && 
+           header.includes('dependentfield') && 
+           header.includes('controllingvalue') &&
+           header.includes('dependentvalues');
+  } catch {
+    return false;
+  }
+}

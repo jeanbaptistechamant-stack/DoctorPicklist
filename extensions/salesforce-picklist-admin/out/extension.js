@@ -151,7 +151,7 @@ function activate(context) {
     });
     const importValues = vscode.commands.registerCommand('drPicklist.importValues', async () => {
         const csvFile = await vscode.window.showOpenDialog({
-            title: 'Sélectionner le CSV (Label,APIName,IsActive)',
+            title: 'Sélectionner le CSV (Label,APIName,IsActive OU dépendances)',
             canSelectMany: false,
             filters: { 'CSV': ['csv'] }
         });
@@ -160,6 +160,64 @@ function activate(context) {
         }
         const filePath = csvFile[0].fsPath;
         const base = filePath.split(/[\\/]/).pop() || '';
+        // Détecter si c'est un CSV de dépendances
+        const { isDependencyCsv } = await Promise.resolve().then(() => __importStar(require('./csv')));
+        const isDep = await isDependencyCsv(filePath);
+        if (isDep) {
+            // C'est un CSV de dépendances - router vers la logique de dépendances
+            const m = base.match(/^([^\.]+)\.([^_]+)__to__([^\.]+)\.csv$/);
+            const inferredObject = m ? m[1] : '';
+            const inferredControlling = m ? m[2] : '';
+            const inferredDependent = m ? m[3] : '';
+            const objectApi = await vscode.window.showInputBox({
+                title: 'Nom API de l\'objet',
+                value: inferredObject,
+                prompt: 'Ex: Account',
+                ignoreFocusOut: true
+            });
+            if (!objectApi)
+                return;
+            const controllingField = await vscode.window.showInputBox({
+                title: 'Champ de contrôle',
+                value: inferredControlling,
+                prompt: 'Ex: Country__c',
+                ignoreFocusOut: true
+            });
+            if (!controllingField)
+                return;
+            const dependentField = await vscode.window.showInputBox({
+                title: 'Champ dépendant',
+                value: inferredDependent,
+                prompt: 'Ex: State__c',
+                ignoreFocusOut: true
+            });
+            if (!dependentField)
+                return;
+            try {
+                const rows = await (0, dependencies_1.readDependenciesCsv)(filePath);
+                if (rows.length === 0) {
+                    vscode.window.showWarningMessage('CSV de dépendances vide ou invalide.');
+                    return;
+                }
+                const details = await (0, salesforce_1.getFieldDetailsOrRetrieve)(objectApi, dependentField);
+                const xml = (0, metadata_1.buildDependentPicklistXml)(dependentField, controllingField, rows, details);
+                const outPath = await (0, metadata_1.writeFieldMetadata)(objectApi, dependentField, xml);
+                vscode.window.showInformationMessage(`Champ dépendant mis à jour: ${outPath}`);
+            }
+            catch (err) {
+                const logPath = await writeErrorLog('import-dependencies', err);
+                let msg = `Échec mise à jour champ dépendant: ${err?.message || String(err)}`;
+                if (/Métadonnées.*introuvables/i.test(String(err?.message || ''))) {
+                    msg = String(err?.message || err);
+                }
+                if (logPath) {
+                    msg += `\n\nVoir log: ${logPath}`;
+                }
+                vscode.window.showErrorMessage(msg);
+            }
+            return;
+        }
+        // C'est un CSV de picklist normale - continuer avec la logique normale
         let inferredObject = '';
         let inferredField = '';
         const m = base.match(/^([^\.]+)\.([^\.]+)\.csv$/);
@@ -436,10 +494,18 @@ function activate(context) {
                     if (!m)
                         continue;
                     const [, objectApi, controllingField, dependentField] = m;
-                    const rows = await (await Promise.resolve().then(() => __importStar(require('./dependencies')))).readDependenciesCsv(path.join(depDir, f));
-                    const details = await (0, salesforce_1.getFieldDetailsOrRetrieve)(objectApi, dependentField);
-                    const xml = (0, metadata_1.buildDependentPicklistXml)(dependentField, controllingField, rows, details);
-                    await (0, metadata_1.writeFieldMetadata)(objectApi, dependentField, xml);
+                    try {
+                        const rows = await (await Promise.resolve().then(() => __importStar(require('./dependencies')))).readDependenciesCsv(path.join(depDir, f));
+                        if (rows.length === 0)
+                            continue;
+                        const details = await (0, salesforce_1.getFieldDetailsOrRetrieve)(objectApi, dependentField);
+                        const xml = (0, metadata_1.buildDependentPicklistXml)(dependentField, controllingField, rows, details);
+                        await (0, metadata_1.writeFieldMetadata)(objectApi, dependentField, xml);
+                    }
+                    catch (err) {
+                        // Log l'erreur mais continue avec les autres fichiers
+                        console.warn(`Impossible de traiter ${f}:`, err);
+                    }
                 }
             }
             catch { }
@@ -494,7 +560,54 @@ function activate(context) {
             vscode.window.showErrorMessage(msg);
         }
     });
-    context.subscriptions.push(exportValues, importValues, exportDeps, importDeps, generateMetadata, prepareDeployment, initProject);
+    const updateDependentField = vscode.commands.registerCommand('drPicklist.updateDependentField', async () => {
+        const csvFile = await vscode.window.showOpenDialog({
+            title: 'Sélectionner le CSV de dépendances',
+            canSelectMany: false,
+            filters: { 'CSV': ['csv'] }
+        });
+        if (!csvFile || csvFile.length === 0) {
+            return;
+        }
+        const filePath = csvFile[0].fsPath;
+        const base = filePath.split(/[\\/]/).pop() || '';
+        const m = base.match(/^([^\.]+)\.([^_]+)__to__([^\.]+)\.csv$/);
+        const inferredObject = m ? m[1] : '';
+        const inferredControlling = m ? m[2] : '';
+        const inferredDependent = m ? m[3] : '';
+        const objectApi = await vscode.window.showInputBox({ title: 'Objet', value: inferredObject, prompt: 'Ex: Account', ignoreFocusOut: true });
+        if (!objectApi)
+            return;
+        const controllingField = await vscode.window.showInputBox({ title: 'Champ de contrôle', value: inferredControlling, prompt: 'Ex: Country__c', ignoreFocusOut: true });
+        if (!controllingField)
+            return;
+        const dependentField = await vscode.window.showInputBox({ title: 'Champ dépendant', value: inferredDependent, prompt: 'Ex: State__c', ignoreFocusOut: true });
+        if (!dependentField)
+            return;
+        try {
+            const rows = await (0, dependencies_1.readDependenciesCsv)(filePath);
+            if (rows.length === 0) {
+                vscode.window.showWarningMessage('CSV de dépendances vide ou invalide.');
+                return;
+            }
+            const details = await (0, salesforce_1.getFieldDetailsOrRetrieve)(objectApi, dependentField);
+            const xml = (0, metadata_1.buildDependentPicklistXml)(dependentField, controllingField, rows, details);
+            const outPath = await (0, metadata_1.writeFieldMetadata)(objectApi, dependentField, xml);
+            vscode.window.showInformationMessage(`Champ dépendant généré: ${outPath}`);
+        }
+        catch (err) {
+            const logPath = await writeErrorLog('update-dependent-field', err);
+            let msg = `Échec mise à jour champ dépendant: ${err?.message || String(err)}`;
+            if (/Métadonnées.*introuvables/i.test(String(err?.message || ''))) {
+                msg = String(err?.message || err);
+            }
+            if (logPath) {
+                msg += `\n\nVoir log: ${logPath}`;
+            }
+            vscode.window.showErrorMessage(msg);
+        }
+    });
+    context.subscriptions.push(exportValues, importValues, exportDeps, importDeps, generateMetadata, prepareDeployment, initProject, updateDependentField);
     try {
         const auto = vscode.workspace.getConfiguration('drPicklist').get('autoGenerateOnStartup', true);
         if (auto) {

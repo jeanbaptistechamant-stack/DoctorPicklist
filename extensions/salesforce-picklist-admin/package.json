@@ -71,6 +71,10 @@
       {
         "command": "drPicklist.prepareDeployment",
         "title": "Dr Picklist: Prepare Deployment Package - Préparer le package de déploiement"
+      },
+      {
+        "command": "drPicklist.updateDependentField",
+        "title": "Dr Picklist: Update Dependent Field - Mettre à jour un champ dépendant depuis CSV"
       }
     ]
   },

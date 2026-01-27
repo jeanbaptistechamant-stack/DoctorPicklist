@@ -32,25 +32,42 @@ export async function writeDependenciesCsv(filePath: string, rows: DependencyRow
     ControllingValue: r.ControllingValue,
     DependentValues: r.DependentValues.join(';')
   }));
-  const csv = stringify(records, { header: true, columns: ['ControllingField','DependentField','ControllingValue','DependentValues'], delimiter: ';' });
+  const csv = stringify(records, { header: true, columns: ['ControllingField','DependentField','ControllingValue','DependentValues'], delimiter: ',' });
   await fs.writeFile(filePath, csv, 'utf8');
 }
 
 export async function readDependenciesCsv(filePath: string): Promise<DependencyRow[]> {
   const content = await fs.readFile(filePath, 'utf8');
-  // Try semicolon first, then fallback to comma for legacy CSVs
-  let records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ';' });
-  if (records.length > 0 && Object.keys(records[0]).length === 1) {
+  // Try comma first (default), then fallback to semicolon
+  let records: any[] = [];
+  let delimiter = ',';
+  
+  try {
+    records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ',', quote: '"', escape: '"' });
+    // Vérifier si on a bien 4 colonnes
+    if (records.length > 0 && Object.keys(records[0]).length < 4) {
+      // Essayer avec point-virgule
+      records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ';', quote: '"', escape: '"' });
+      delimiter = ';';
+    }
+  } catch {
+    // Fallback vers point-virgule en cas d'erreur
     try {
-      records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ',' });
+      records = parse(content, { columns: true, skip_empty_lines: true, delimiter: ';', quote: '"', escape: '"' });
+      delimiter = ';';
     } catch {}
   }
-  return records.map((r: any) => ({
-    ControllingField: String(r.ControllingField ?? '').trim(),
-    DependentField: String(r.DependentField ?? '').trim(),
-    ControllingValue: String(r.ControllingValue ?? '').trim(),
-    DependentValues: String(r.DependentValues ?? '').split(';').map((s: string) => s.trim()).filter(Boolean)
-  }));
+  
+  return records.map((r: any) => {
+    // Le délimiteur pour DependentValues est toujours le point-virgule dans la valeur
+    const depValues = String(r.DependentValues ?? '').split(';').map((s: string) => s.trim()).filter(Boolean);
+    return {
+      ControllingField: String(r.ControllingField ?? '').trim(),
+      DependentField: String(r.DependentField ?? '').trim(),
+      ControllingValue: String(r.ControllingValue ?? '').trim(),
+      DependentValues: depValues
+    };
+  });
 }
 
 function base64ToBits(b64: string): boolean[] {
