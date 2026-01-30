@@ -29,7 +29,9 @@ L'extension s'interface avec **Salesforce CLI** pour :
 - Récupérer les métadonnées des picklists via l'API Tooling
 - Déployer les packages de métadonnées (`sfdx force:mdapi:deploy`)
 
-**API Version Salesforce**: 65.0 (configurable dans `sfdx-project.json`)
+**API Version Salesforce**: 
+- Version du projet : 65.0 (configurée dans `sfdx-project.json`)
+- Version par défaut du déploiement CLI : 59.0 (configurable via `--api` dans `dr-picklist prepare-deploy`)
 
 ### 3. Traitement des données
 
@@ -37,17 +39,18 @@ L'extension s'interface avec **Salesforce CLI** pour :
 - **csv-parse** (^5.5.0) : Parser les fichiers CSV en objets JavaScript
 - **csv-stringify** (^6.5.0) : Générer des CSV depuis des objets JavaScript
 
-Format CSV utilisé pour les picklists :
+Format CSV utilisé pour les picklists (délimiteur : point-virgule) :
 ```csv
-Label,APIName,IsActive
-Manufacturing,Manufacturing,true
-Technology,Technology,true
+Label;APIName;IsActive
+Manufacturing;Manufacturing;true
+Technology;Technology;true
 ```
 
-Format CSV pour les dépendances :
+Format CSV pour les dépendances (délimiteur principal : virgule ; séparateur de valeurs multiples : point-virgule) :
 ```csv
 ControllingField,DependentField,ControllingValue,DependentValues
-Country__c,State__c,France,"Île-de-France;Provence;Normandie"
+Country__c,State__c,France,Île-de-France;Provence;Normandie
+Country__c,State__c,USA,California;Texas;New York
 ```
 
 #### XML
@@ -68,6 +71,8 @@ Commandes disponibles :
 - `dr-picklist prepare-deploy` : Préparation du package de déploiement
 - `dr-picklist export-values` : Export d'une picklist
 - `dr-picklist import-values` : Import d'une picklist
+- `dr-picklist export-dependencies` : Export des dépendances de picklist
+- `dr-picklist import-dependencies` : Import des dépendances de picklist
 
 ### 5. Tests
 
@@ -160,17 +165,18 @@ Ensemble de valeurs standard Salesforce (ex: Industry, LeadSource).
 ## Déploiement
 
 ### Package MDAPI
-Structure générée dans `project/deploy/` :
+Structure générée dans `DrPicklist/deploy/` :
 ```
-project/deploy/
-├── src/
-│   ├── objects/
-│   ├── globalValueSets/
-│   ├── standardValueSets/
-│   └── package.xml
+DrPicklist/deploy/
+├── package.xml
+└── src/
+    ├── objects/
+    ├── globalValueSets/
+    └── standardValueSets/
 ```
 
 ### Commande de déploiement
+Depuis le répertoire `DrPicklist/deploy/` :
 ```powershell
 sfdx force:mdapi:deploy -d src -w -1
 ```
