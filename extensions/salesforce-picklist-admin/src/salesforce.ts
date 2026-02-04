@@ -49,7 +49,7 @@ if (objType == null) {
   try {
     const username = await getDefaultUsername();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await runSfdx(`sfdx force:apex:execute -f "${tmpFile}"${userArg} --json`);
+    const out = await runSfdx(`sf force:apex:execute -f "${tmpFile}"${userArg} --json`);
     const json = parseSfdxJson(out);
     const logs: string = json?.result?.logs || '';
     const lines = logs.split(/\r?\n/);
@@ -82,7 +82,7 @@ export async function getFieldInfo(objectApi: string, fieldApi: string): Promise
     throw new Error(
       `Métadonnées pour ${objectApi}.${fieldApi} introuvables.\n` +
       `Veuillez d'abord récupérer les métadonnées localement :\n` +
-      `sfdx force:source:retrieve -m CustomObject:${objectApi}`
+      `sf force:source:retrieve -m CustomObject:${objectApi}`
     );
   }
   return {
@@ -100,7 +100,7 @@ export async function getFieldDetails(objectApi: string, fieldApi: string): Prom
     throw new Error(
       `Métadonnées pour ${objectApi}.${fieldApi} introuvables.\n` +
       `Veuillez d'abord récupérer les métadonnées localement :\n` +
-      `sfdx force:source:retrieve -m CustomObject:${objectApi}`
+      `sf force:source:retrieve -m CustomObject:${objectApi}`
     );
   }
   return details;
@@ -110,7 +110,7 @@ async function retrieveCustomObject(objectApi: string): Promise<boolean> {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
   // Retrieve the CustomObject in source format into force-app/main/default
-  const out = await runSfdx(`sfdx force:source:retrieve -m CustomObject:${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:source:retrieve -m CustomObject:${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json?.status !== 0) return false;
   return true;
@@ -173,7 +173,7 @@ export async function getFieldDetailsOrRetrieve(objectApi: string, fieldApi: str
 
 export async function getDefaultUsername(): Promise<string | null> {
   try {
-    const out = await runSfdx('sfdx force:org:list --json');
+    const out = await runSfdx('sf force:org:list --json');
     const json = parseSfdxJson(out);
     const lists = [ ...(json?.result?.nonScratchOrgs || []), ...(json?.result?.scratchOrgs || []) ];
     const def = lists.find((o: any) => o.isDefaultUsername);

@@ -17,7 +17,7 @@ export type FieldDetails = FieldInfo & {
 
 export async function getDefaultUsername(): Promise<string | null> {
   try {
-    const out = await runSfdx('sfdx force:org:list --json');
+    const out = await runSfdx('sf force:org:list --json');
     const json = parseSfdxJson(out);
     const lists = [ ...(json?.result?.nonScratchOrgs || []), ...(json?.result?.scratchOrgs || []) ];
     const def = lists.find((o: any) => o.isDefaultUsername);
@@ -30,7 +30,7 @@ export async function getDefaultUsername(): Promise<string | null> {
 export async function getFieldInfo(objectApi: string, fieldApi: string): Promise<FieldInfo> {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json?.status !== 0) {
     throw new Error(json?.message || 'Erreur describe');
@@ -44,7 +44,7 @@ export async function getFieldInfo(objectApi: string, fieldApi: string): Promise
 export async function getFieldDetails(objectApi: string, fieldApi: string): Promise<FieldDetails> {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json?.status !== 0) {
     throw new Error(json?.message || 'Erreur describe');
@@ -281,7 +281,7 @@ export async function writeStandardValueSet(name: string, xml: string): Promise<
 export async function exportPicklistValuesDescribe(objectApi: string, fieldApi: string): Promise<PicklistEntry[]> {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json?.status !== 0) {
     throw new Error(json?.message || 'Erreur describe');
@@ -437,7 +437,7 @@ export async function generateMetadataFromCsv(): Promise<void> {
 export async function exportDependenciesCli(objectApi: string, dependentField: string, controllingField?: string): Promise<string> {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   const fields: any[] = json?.result?.fields || [];
   const dep = fields.find(f => f.name === dependentField);

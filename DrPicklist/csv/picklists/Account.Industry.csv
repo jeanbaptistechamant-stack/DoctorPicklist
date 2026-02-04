@@ -1,33 +1,33 @@
 Label;APIName;IsActive
-Agriculture;Agriculture;0
-Apparel;Apparel;1
-Banking;Banking;1
-Biotechnology;Biotechnology;1
-Chemicals;Chemicals;0
+Agriculture;Agriculture;1
+Habillement;Apparel;1
+Banque;Banking;1
+Biotechnologie;Biotechnology;1
+Chimie;Chemicals;1
 Communications;Communications;1
 Construction;Construction;1
-Consulting;Consulting;1
-Education;Education;1
-Electronics;Electronics;1
-Energy;Energy;1
-Engineering;Engineering;1
-Entertainment;Entertainment;1
-Environmental;Environmental;1
+Services de conseils;Consulting;1
+Formation;Education;1
+Électronique;Electronics;1
+Énergie;Energy;1
+Ingénierie;Engineering;1
+Loisirs;Entertainment;1
+Environnement;Environmental;1
 Finance;Finance;1
-Food & Beverage;Food & Beverage;1
-Government;Government;1
-Healthcare;Healthcare;1
-Hospitality;Hospitality;1
-Insurance;Insurance;1
-Machinery;Machinery;1
+Alimentation et boissons;Food & Beverage;1
+Administration publique;Government;1
+Santé;Healthcare;1
+Hôpitaux;Hospitality;1
+Assurances;Insurance;1
+Mécanique;Machinery;1
 Manufacturing;Manufacturing;1
-Media;Media;1
-Not For Profit;Not For Profit;1
-Other;Other;1
-Recreation;Recreation;1
-Retail;Retail;1
-Shipping;Shipping;1
-Technology;Technology;1
-Telecommunications;Telecommunications;1
-Transportation;Transportation;1
-Utilities;Utilities;1
+Médias;Media;1
+À but non lucratif;Not For Profit;1
+Autre;Other;1
+Divertissement;Recreation;1
+Distribution;Retail;1
+Expédition;Shipping;1
+Technologie;Technology;1
+Télécommunications;Telecommunications;1
+Transports;Transportation;1
+Outils;Utilities;1

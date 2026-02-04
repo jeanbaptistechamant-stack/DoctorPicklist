@@ -9,21 +9,195 @@
     <valueSetDefinition>
       <sorted>false</sorted>
       <value>
+        <fullName>Agriculture</fullName>
+        <default>false</default>
+        <label>Agriculture</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Apparel</fullName>
+        <default>false</default>
+        <label>Habillement</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Banking</fullName>
+        <default>false</default>
+        <label>Banque</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Biotechnology</fullName>
+        <default>false</default>
+        <label>Biotechnologie</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Chemicals</fullName>
+        <default>false</default>
+        <label>Chimie</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Communications</fullName>
+        <default>false</default>
+        <label>Communications</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Construction</fullName>
+        <default>false</default>
+        <label>Construction</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Consulting</fullName>
+        <default>false</default>
+        <label>Services de conseils</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Education</fullName>
+        <default>false</default>
+        <label>Formation</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Electronics</fullName>
+        <default>false</default>
+        <label>Électronique</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Energy</fullName>
+        <default>false</default>
+        <label>Énergie</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Engineering</fullName>
+        <default>false</default>
+        <label>Ingénierie</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Entertainment</fullName>
+        <default>false</default>
+        <label>Loisirs</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Environmental</fullName>
+        <default>false</default>
+        <label>Environnement</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Finance</fullName>
+        <default>false</default>
+        <label>Finance</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Food &amp; Beverage</fullName>
+        <default>false</default>
+        <label>Alimentation et boissons</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Government</fullName>
+        <default>false</default>
+        <label>Administration publique</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Healthcare</fullName>
+        <default>false</default>
+        <label>Santé</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Hospitality</fullName>
+        <default>false</default>
+        <label>Hôpitaux</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Insurance</fullName>
+        <default>false</default>
+        <label>Assurances</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Machinery</fullName>
+        <default>false</default>
+        <label>Mécanique</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
         <fullName>Manufacturing</fullName>
         <default>false</default>
         <label>Manufacturing</label>
         <isActive>true</isActive>
       </value>
       <value>
-        <fullName>Technology</fullName>
+        <fullName>Media</fullName>
         <default>false</default>
-        <label>Technology</label>
+        <label>Médias</label>
         <isActive>true</isActive>
       </value>
       <value>
-        <fullName>Education</fullName>
+        <fullName>Not For Profit</fullName>
         <default>false</default>
-        <label>Education</label>
+        <label>À but non lucratif</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Other</fullName>
+        <default>false</default>
+        <label>Autre</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Recreation</fullName>
+        <default>false</default>
+        <label>Divertissement</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Retail</fullName>
+        <default>false</default>
+        <label>Distribution</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Shipping</fullName>
+        <default>false</default>
+        <label>Expédition</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Technology</fullName>
+        <default>false</default>
+        <label>Technologie</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Telecommunications</fullName>
+        <default>false</default>
+        <label>Télécommunications</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Transportation</fullName>
+        <default>false</default>
+        <label>Transports</label>
+        <isActive>true</isActive>
+      </value>
+      <value>
+        <fullName>Utilities</fullName>
+        <default>false</default>
+        <label>Outils</label>
         <isActive>true</isActive>
       </value>
     </valueSetDefinition>

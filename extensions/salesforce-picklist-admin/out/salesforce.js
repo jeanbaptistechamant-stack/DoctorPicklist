@@ -77,7 +77,7 @@ if (objType == null) {
     try {
         const username = await getDefaultUsername();
         const userArg = username ? ` -u "${username}"` : '';
-        const out = await (0, sfdx_1.runSfdx)(`sfdx force:apex:execute -f "${tmpFile}"${userArg} --json`);
+        const out = await (0, sfdx_1.runSfdx)(`sf force:apex:execute -f "${tmpFile}"${userArg} --json`);
         const json = (0, sfdx_1.parseSfdxJson)(out);
         const logs = json?.result?.logs || '';
         const lines = logs.split(/\r?\n/);
@@ -117,7 +117,7 @@ async function getFieldInfo(objectApi, fieldApi) {
     if (!details) {
         throw new Error(`Métadonnées pour ${objectApi}.${fieldApi} introuvables.\n` +
             `Veuillez d'abord récupérer les métadonnées localement :\n` +
-            `sfdx force:source:retrieve -m CustomObject:${objectApi}`);
+            `sf force:source:retrieve -m CustomObject:${objectApi}`);
     }
     return {
         objectApi: details.objectApi,
@@ -132,7 +132,7 @@ async function getFieldDetails(objectApi, fieldApi) {
     if (!details) {
         throw new Error(`Métadonnées pour ${objectApi}.${fieldApi} introuvables.\n` +
             `Veuillez d'abord récupérer les métadonnées localement :\n` +
-            `sfdx force:source:retrieve -m CustomObject:${objectApi}`);
+            `sf force:source:retrieve -m CustomObject:${objectApi}`);
     }
     return details;
 }
@@ -140,7 +140,7 @@ async function retrieveCustomObject(objectApi) {
     const username = await getDefaultUsername();
     const userArg = username ? ` -u "${username}"` : '';
     // Retrieve the CustomObject in source format into force-app/main/default
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:source:retrieve -m CustomObject:${objectApi}${userArg} --json`);
+    const out = await (0, sfdx_1.runSfdx)(`sf force:source:retrieve -m CustomObject:${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json?.status !== 0)
         return false;
@@ -204,7 +204,7 @@ async function getFieldDetailsOrRetrieve(objectApi, fieldApi) {
 }
 async function getDefaultUsername() {
     try {
-        const out = await (0, sfdx_1.runSfdx)('sfdx force:org:list --json');
+        const out = await (0, sfdx_1.runSfdx)('sf force:org:list --json');
         const json = (0, sfdx_1.parseSfdxJson)(out);
         const lists = [...(json?.result?.nonScratchOrgs || []), ...(json?.result?.scratchOrgs || [])];
         const def = lists.find((o) => o.isDefaultUsername);

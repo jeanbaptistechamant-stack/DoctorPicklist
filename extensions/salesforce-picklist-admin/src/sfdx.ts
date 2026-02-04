@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 
-// Shared SFDX helpers: run command and parse noisy JSON outputs
+// Shared Salesforce CLI helpers: run command and parse noisy JSON outputs
 export function runSfdx(command: string): Promise<string> {
   return new Promise((resolve) => {
     exec(command, { shell: 'powershell.exe' }, (_error, stdout, stderr) => {
@@ -48,7 +48,7 @@ export class SfdxJsonParseError extends Error {
   public readonly rawOutput: string;
 
   constructor(cleanOutput: string) {
-    super('Sortie SFDX non JSON');
+    super('Sortie Salesforce CLI non JSON');
     this.name = 'SfdxJsonParseError';
     this.rawOutput = cleanOutput;
   }

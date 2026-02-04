@@ -85,7 +85,7 @@ function base64ToBits(b64: string): boolean[] {
 export async function exportDependencies(objectApi: string, dependentField: string) {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json.status !== 0) {
     throw new Error(json?.message || 'Erreur describe');
@@ -122,7 +122,7 @@ export async function exportDependencies(objectApi: string, dependentField: stri
 export async function listPicklistFields(objectApi: string): Promise<string[]> {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json.status !== 0) {
     throw new Error(json?.message || 'Erreur describe');
@@ -134,7 +134,7 @@ export async function listPicklistFields(objectApi: string): Promise<string[]> {
 export async function exportDependenciesWithController(objectApi: string, dependentField: string, controllingField: string) {
   const username = await getDefaultUsername();
   const userArg = username ? ` -u "${username}"` : '';
-  const out = await runSfdx(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+  const out = await runSfdx(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
   const json = parseSfdxJson(out);
   if (json?.status && json.status !== 0) {
     throw new Error(json?.message || 'Erreur describe');

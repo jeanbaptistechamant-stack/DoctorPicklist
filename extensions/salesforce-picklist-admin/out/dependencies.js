@@ -114,7 +114,7 @@ function base64ToBits(b64) {
 async function exportDependencies(objectApi, dependentField) {
     const username = await (0, salesforce_1.getDefaultUsername)();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const out = await (0, sfdx_1.runSfdx)(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json.status !== 0) {
         throw new Error(json?.message || 'Erreur describe');
@@ -152,7 +152,7 @@ async function exportDependencies(objectApi, dependentField) {
 async function listPicklistFields(objectApi) {
     const username = await (0, salesforce_1.getDefaultUsername)();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const out = await (0, sfdx_1.runSfdx)(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json.status !== 0) {
         throw new Error(json?.message || 'Erreur describe');
@@ -163,7 +163,7 @@ async function listPicklistFields(objectApi) {
 async function exportDependenciesWithController(objectApi, dependentField, controllingField) {
     const username = await (0, salesforce_1.getDefaultUsername)();
     const userArg = username ? ` -u "${username}"` : '';
-    const out = await (0, sfdx_1.runSfdx)(`sfdx force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
+    const out = await (0, sfdx_1.runSfdx)(`sf force:schema:sobject:describe -s ${objectApi}${userArg} --json`);
     const json = (0, sfdx_1.parseSfdxJson)(out);
     if (json?.status && json.status !== 0) {
         throw new Error(json?.message || 'Erreur describe');

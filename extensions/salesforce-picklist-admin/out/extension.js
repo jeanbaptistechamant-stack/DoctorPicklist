@@ -81,10 +81,10 @@ async function writeErrorLog(context, err) {
             parts.push('Détails supplémentaires:');
             parts.push(JSON.stringify(extra, null, 2));
         }
-        // Cas particulier : erreur de parsing SFDX avec sortie brute
+        // Cas particulier : erreur de parsing Salesforce CLI avec sortie brute
         if (err?.rawOutput) {
             parts.push('');
-            parts.push('Sortie SFDX complète:');
+            parts.push('Sortie Salesforce CLI complète:');
             parts.push(String(err.rawOutput));
         }
         const message = parts.join('\n');
